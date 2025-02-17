@@ -78,6 +78,7 @@ timeline.push({
     timeline_variables: trials
 });
 
-jsPsych.run([timeline, save_data_trial]);
+timeline.push(save_data_trial);
+jsPsych.run(timeline);
 </script>
 </html>
