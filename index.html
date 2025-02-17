@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Experiment</title>
+<script src="https://unpkg.com/jspsych@7.3.4"></script>
+<script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
+<script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+<link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css"
+rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+const jsPsych = initJsPsych({
+    on_finish: function() {
+        jsPsych.data.displayData();
+    }
+});
+
+const words = ["RED", "BLUE", "GREEN"];
+const colors = ["red", "blue", "green"];
+let trials = [];
+
+for (let word of words) {
+    for (let color of colors) {
+        trials.push({word: word, color: color});
+    }
+}
+
+trials = jsPsych.randomization.repeat(trials, 2);
+
+const start = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: "<p>Welcome to the Experiment!</p> <p>Click 'Start' to begin</p>",
+    choices: ['Start']
+};
+
+const ready = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "<p>Press any key when ready for the next trial<p>",
+    post_trial_gap: 500
+};
+
+const stroop_trial = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: function() {
+        let word = jsPsych.timelineVariable('word');
+        let color = jsPsych.timelineVariable('color');
+        return `<p style = "color:${color};"> ${word}</p>`;
+    },
+    choices: ["MATCH", "NOT"],
+    data: function() {
+        let word = jsPsych.timelineVariable('word');
+        let color = jsPsych.timelineVariable('color');
+        return {
+            word: word,
+            color: color,
+            congruent: word.toLowerCase() === color ? 1:0
+        };
+    },
+    on_finish:function(data) {
+        let correct_response = data.congruent === 1 ? 0 : 1;
+        data.correct = (data.response === correct_response);
+    }
+};
+
+const timeline = [start]; 
+timeline.push({
+    timeline: [ready, stroop_trial],
+    timeline_variables: trials
+});
+
+jsPsych.run(timeline);
+</script>
+</html>
